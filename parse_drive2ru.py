@@ -29,6 +29,7 @@ header = {
 
 def db_connection():
     connect = sqlite3.connect(db_path)
+    connect.execute("PRAGMA journal_mode=WAL")
     return connect
 
 
@@ -112,8 +113,8 @@ def get_ownerId_bj(link):
 def subscribe_like():
     connection = sqlite3.connect(db_path)
     connection.execute("PRAGMA journal_mode=WAL")
-    cursor = connection.cursor()
     get_work_set = """SELECT * from bj_list ORDER BY like_sub ASC LIMIT 300;"""
+    cursor = connection.cursor()
     cursor.execute(get_work_set)
     rows = cursor.fetchall()
     for row in rows:
@@ -155,13 +156,13 @@ def personal_messaging():
     rows = cursor.fetchall()
     for row in rows:
         k = row[0]
-        link = get_ownerId_bj(k)
+        link = row[2]
         message_payload = {
             '_': 'post',
+            '.FCTX': '_wfqzlwoyiseAAQcQnJ1LldlYi4xOjQ3MzM3Njg2NTM0ODc0ODExOaQLV00tWU70CYwutSfmUNNvwboI',
+            'messageId': 636698141049228706,
             'partner': link,
-            'messageId': 636695861674643689,
-            'text': gen_phrase(),
-            '.FCTX': '_wfqzlwoyiseAAQcQnJ1LldlYi4xOjQ3MzM3Njg2NTM0ODc0ODExOaQLV00tWU70CYwutSfmUNNvwboI'
+            'text': gen_phrase()
         }
         with connection:
             if requests.post('https://www.drive2.ru/ajax/messages.cshtml', headers=header, data=message_payload).status_code == 200:
@@ -206,7 +207,7 @@ def profile_commenting():
                 return False
             connection.commit()
         print("I'm running on thread %s" % threading.current_thread() + ' profile commented ' + str(row[0]))
-        time.sleep(random.randint(200, 500))
+        time.sleep(random.randint(2000, 5000))
 
 
 def bj_commenting():
@@ -238,7 +239,7 @@ def bj_commenting():
                 return False
             connection.commit()
         print("I'm running on thread %s" % threading.current_thread() + ' bj commented ' + str(row[0]))
-        time.sleep(random.randint(200, 500))
+        time.sleep(random.randint(2000, 5000))
 
 
 def unsubscription():
@@ -259,26 +260,39 @@ def run_schedule():
 
 
 def run_subscribe_like():
-    schedule.every(24).hours.do(subscribe_like())
-    run_schedule()
+    try:
+        schedule.every(24).hours.do(subscribe_like())
+        run_schedule()
+    except:
+        pass
 
 
 def run_personal_messaging():
-    time.sleep(1)
-    schedule.every(24).hours.do(personal_messaging())
-    run_schedule()
+    try:
+        time.sleep(1)
+        schedule.every(24).hours.do(personal_messaging())
+        run_schedule()
+    except:
+        pass
 
 
 def run_profile_commenting():
-    time.sleep(5)
-    schedule.every(24).hours.do(profile_commenting())
-    run_schedule()
+    try:
+        time.sleep(5)
+        schedule.every(24).hours.do(profile_commenting())
+        run_schedule()
+    except:
+        pass
 
 
 def run_bj_commenting():
-    time.sleep(10)
-    schedule.every(24).hours.do(bj_commenting())
-    run_schedule()
+    try:
+        time.sleep(10)
+        schedule.every(24).hours.do(bj_commenting())
+        run_schedule()
+    except:
+        pass
+
 
 def run_job():
     sub_like = Process(target=run_subscribe_like)
@@ -294,5 +308,7 @@ def run_job():
     profile.join()
     bj.join()
 
+
 if __name__ == "__main__":
     run_job()
+    11111111
